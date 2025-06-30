@@ -1,41 +1,58 @@
-from typing import AsyncGenerator
-
-from fastapi import Depends
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
-from sqlalchemy import String
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.orm import DeclarativeMeta, Mapped, mapped_column, declarative_base
-
-DATABASE_URL = "sqlite+aiosqlite:///./database.db"
-
-Base: DeclarativeMeta = declarative_base()
-engine = create_async_engine(DATABASE_URL, echo=False)
-async_session_maker = async_sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+import os
+import uuid
+from sqlalchemy import Column, String, Float, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
-    """
-    Extra field `username` is UNIQUE and **required** at registration time.
-    E-mail stays because FastAPI-Users uses it internally.
-    """
-    username: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+# Create data directory
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+Base = declarative_base()
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+    def __init__(self, **kwargs):
+        # Ensure ID is always a string
+        if 'id' not in kwargs:
+            kwargs['id'] = str(uuid.uuid4())
+        super().__init__(**kwargs)
+
+
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), index=True)
+    currency = Column(String(3), index=True)
+    amount = Column(Float)
+
+    def __init__(self, **kwargs):
+        # Ensure ID is always a string
+        if 'id' not in kwargs:
+            kwargs['id'] = str(uuid.uuid4())
+        super().__init__(**kwargs)
+
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
         yield session
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User)
+async def create_db_and_tables():
+    # Create database file if it doesn't exist
+    db_file = DATA_DIR / "database.db"
+    if not db_file.exists():
+        db_file.touch()
 
-
-async def create_db_and_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

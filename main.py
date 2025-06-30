@@ -1,56 +1,78 @@
-from fastapi import Depends, FastAPI
-from dotenv import load_dotenv
-from app.db.db import create_db_and_tables, User
-from app.db.schemas import UserCreate, UserRead, UserUpdate
-from app.db.users import auth_backend, current_active_user, fastapi_users
+import logging
 
-app = FastAPI(title="FastAPI-Users + SQLite example")
+from fastapi import FastAPI
+from fastapi.security import HTTPBearer
+from fastapi.openapi.utils import get_openapi
+from app.db.db import create_db_and_tables
+from app.routers import auth, users, wallets
 
+# --------------------------------------------------------------------------- #
+#  Logging
+# --------------------------------------------------------------------------- #
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-async def initialize_database():
-    await create_db_and_tables()
-    print("Database and tables created")
-
-# -------- Auth & User routes --------------------------------------------------
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
+# --------------------------------------------------------------------------- #
+#  FastAPI application
+# --------------------------------------------------------------------------- #
+app = FastAPI(
+    title="ZlotConverter API",
+    description="Currency conversion and wallet management API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url=None,
 )
 
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
-
-# Password reset & e-mail verification (optional but handy)
-app.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_verify_router(UserRead),
-    prefix="/auth",
-    tags=["auth"],
-)
-
-# CRUD endpoints for the *current* user
-app.include_router(
-    fastapi_users.get_users_router(UserRead, UserUpdate),
-    prefix="/users",
-    tags=["users"],
+# --------------------------------------------------------------------------- #
+#  Security – HTTP Bearer (JWT)
+# --------------------------------------------------------------------------- #
+security_scheme = HTTPBearer(
+    scheme_name="BearerAuth",            # label in Swagger UI
+    bearerFormat="JWT",
+    description="Paste your JWT here:",
 )
 
 
-# -------- Public demo route ---------------------------------------------------
-@app.get("/hello")
-async def hello():
-    return {"msg": "Hello!"}
+# --------------------------------------------------------------------------- #
+#  Custom OpenAPI generator – remove any OAuth2PasswordBearer that sneaks in
+# --------------------------------------------------------------------------- #
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    # keep only our Bearer scheme
+    comps = schema.setdefault("components", {})
+    schemes = comps.setdefault("securitySchemes", {})
+    schemes.pop("OAuth2PasswordBearer", None)  # ← ditch the username/password box
+
+    app.openapi_schema = schema
+    return app.openapi_schema
 
 
-# -------- Start-up hook -------------------------------------------------------
+app.openapi = custom_openapi  # override FastAPI’s default generator
+
+
+# --------------------------------------------------------------------------- #
+#  Startup – make sure tables exist
+# --------------------------------------------------------------------------- #
 @app.on_event("startup")
-async def on_startup():
-    await initialize_database()
+async def startup_event():
+    logger.info("Starting application…")
+    await create_db_and_tables()
+    logger.info("Database initialized")
+
+
+# --------------------------------------------------------------------------- #
+#  Routes
+# --------------------------------------------------------------------------- #
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(wallets.router)
+

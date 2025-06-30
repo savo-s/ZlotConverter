@@ -6,7 +6,6 @@ from db import Base
 
 class Wallet(SQLModel, table=True):
     __tablename__ = "wallets"
-
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(index=True)
     currency: str = Field(index=True, min_length=3, max_length=3)
@@ -15,7 +14,6 @@ class Wallet(SQLModel, table=True):
 
 class User(Base):
     __tablename__ = "users"
-
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)

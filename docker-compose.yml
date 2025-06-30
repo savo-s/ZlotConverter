@@ -1,12 +1,32 @@
-version: '3.8'
+#version: '3.8'
+#
+#services:
+#  app:
+#    build: .
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      - SECRET=${SECRET:-default_secret}  # Use .env or default
+#    volumes:
+#      - ./data:/app/data
+#    env_file: .env  # Load environment variables from .env
+
+version: "3.8"
 
 services:
   app:
     build: .
+    # reload whenever you save a file
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
-    environment:
-      - SECRET=${SECRET:-default_secret}  # Use .env or default
+
+    # bind-mount the whole source tree *and* keep your data volume
     volumes:
-      - ./data:/app/data
-    env_file: .env  # Load environment variables from .env
+      - .:/app               # <-- live source code
+      - ./data:/app/data     # <-- persistent data
+
+    # environment/secret handling
+    env_file: .env
+    environment:
+      - SECRET=${SECRET:-default_secret}
