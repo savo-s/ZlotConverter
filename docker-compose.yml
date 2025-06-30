@@ -1,18 +1,3 @@
-#version: '3.8'
-#
-#services:
-#  app:
-#    build: .
-#    ports:
-#      - "8000:8000"
-#    environment:
-#      - SECRET=${SECRET:-default_secret}  # Use .env or default
-#    volumes:
-#      - ./data:/app/data
-#    env_file: .env  # Load environment variables from .env
-
-version: "3.8"
-
 services:
   app:
     build: .

@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from fastapi.openapi.utils import get_openapi
-from app.db.db import create_db_and_tables
+from app.db.database import create_db_and_tables
 from app.routers import auth, users, wallets
 
 # --------------------------------------------------------------------------- #
@@ -29,7 +29,7 @@ app = FastAPI(
 security_scheme = HTTPBearer(
     scheme_name="BearerAuth",            # label in Swagger UI
     bearerFormat="JWT",
-    description="Paste your JWT here:",
+    description="Paste your JWT token here:",
 )
 
 

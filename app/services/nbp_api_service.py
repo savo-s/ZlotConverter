@@ -15,11 +15,11 @@ class NbpApiService:
             raise Exception('Error while obtaining currency data from NBP')
 
     def get_exchange_currency_codes(self) -> list:
-        currency_codes = [rate['code'] for rate in self.response[0]['rates']]
+        currency_codes = [rate['code'] for rate in self.exchange_rates[0]['rates']]
         return currency_codes
 
     def get_ask_prices(self, code=None) -> float | dict:
-        ask_prices = dict((rate['code'], rate['ask']) for rate in self.response[0]['rates'])
+        ask_prices = dict((rate['code'], rate['ask']) for rate in self.exchange_rates[0]['rates'])
         if code is not None:
             return float(ask_prices[code])
         else:

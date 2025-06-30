@@ -27,8 +27,6 @@ RUN pip install --no-cache-dir \
 # Copy application files
 COPY . .
 
-ENV SECRET=your_strong_secret_key_here
-
 EXPOSE 8000
 
 # Hot reload command
