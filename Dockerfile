@@ -13,7 +13,6 @@ COPY requirements.txt* ./
 # Install dependencies
 RUN pip install --no-cache-dir \
     fastapi \
-    fastapi-users[sqlalchemy] \
     sqlmodel \
     aiosqlite \
     requests \

@@ -18,15 +18,3 @@ class ApiCaller:
 
         else:
             print("API limits exceeded! Please wait and then try again.")
-
-
-if __name__ == "__main__":
-    from app.http.endpoints.nbp.current_exchange_rates import CurrentExchangeRates
-    import time
-    for i in range(0, 7):
-        _response = ApiCaller.call(CurrentExchangeRates())
-        print(_response)
-    time.sleep(60)
-    for i in range(0, 7):
-        _response = ApiCaller.call(CurrentExchangeRates())
-        print(_response)

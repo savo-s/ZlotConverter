@@ -1,6 +1,5 @@
-# app/routers/users.py
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession           # type annotation (optional)
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.db.schemas import UserResponse

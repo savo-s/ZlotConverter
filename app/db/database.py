@@ -3,7 +3,6 @@ from pathlib import Path
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.db.base import Base
-# from models import User, Wallet    # ensures models are registered before create_all
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

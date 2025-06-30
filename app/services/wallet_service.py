@@ -1,16 +1,12 @@
-# app/services/wallets_service.py
 import logging
 from typing import Dict, Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, delete, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dependencies.auth import get_current_user
-# from app.db.base import Base
-from app.db.models import Wallet, User                # <- adjust import paths if different
+from app.db.models import Wallet, User
 from app.services.nbp_api_service import NbpApiService
-from fastapi import APIRouter, Depends
-from app.db.database import get_db
+
 
 logger = logging.getLogger(__name__)
 

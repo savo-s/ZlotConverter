@@ -26,12 +26,6 @@ class NbpApiService:
             return ask_prices
 
 
-if __name__ == "__main__":
-    nbp = NbpApiService()
-    print(nbp.get_exchange_currency_codes())
-    print(nbp.get_ask_prices())
-    print(nbp.get_ask_prices('HUF'))
-
 
 
 
